@@ -236,12 +236,12 @@ function create_table(drv, con, table_num)
       query = string.format([[
       CREATE TABLE sbtest%d(
         id %s,
-	k INTEGER DEFAULT '0' NOT NULL,
-	%s
+        k INTEGER DEFAULT '0' NOT NULL,
+        %s
         c BINARY(120) DEFAULT '' NOT NULL,
         pad BINARY(60) DEFAULT '' NOT NULL,
         %s (id)
-	) %s %s]],
+      ) %s %s]],
          table_num, id_def, string_keys_define, id_index_def, engine_def,
          sysbench.opt.create_table_options)
    end
@@ -283,14 +283,13 @@ function create_table(drv, con, table_num)
       if (sysbench.opt.auto_inc) then
          query = string.format("(%d, %s \"%s\", \"%s\")",
                                sysbench.rand.default(1, sysbench.opt.table_size),
-			       string_query,
+                               string_query,
                                c_val, pad_val)
-	 
       else
          query = string.format("(%d, %d, %s \"%s\", \"%s\")",
                                i,
                                sysbench.rand.default(1, sysbench.opt.table_size),
-			       string_query,
+                               string_query,
                                c_val, pad_val)
       end
 

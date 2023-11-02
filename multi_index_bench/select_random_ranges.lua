@@ -37,49 +37,49 @@ function thread_init()
    drv = sysbench.sql.driver()
    con = drv:connect()
    for db_id = 1, sysbench.opt.db_nums do
-     local db_name = string.format("%s%d",sysbench.opt.db_prefix, db_id)
-     stmt[db_id] = {}
-     params[db_id] = {}
-     for kid = 1, sysbench.opt.index_nums do
-       stmt[db_id][kid] = {}
-       local k_name = string.format("k%d",kid)
-       local ranges = string.rep(k_name .. " BETWEEN ? AND ? OR ",
-                               sysbench.opt.number_of_ranges - 1) ..
-          k_name .. " BETWEEN ? AND ?"
+      local db_name = string.format("%s%d",sysbench.opt.db_prefix, db_id)
+      stmt[db_id] = {}
+      params[db_id] = {}
+      for kid = 1, sysbench.opt.index_nums do
+         stmt[db_id][kid] = {}
+         local k_name = string.format("k%d",kid)
+         local ranges = string.rep(k_name .. " BETWEEN ? AND ? OR ",
+                                 sysbench.opt.number_of_ranges - 1) ..
+            k_name .. " BETWEEN ? AND ?"
 
-       if (sysbench.opt.secondary_ranges == 0) then
-        stmt[db_id][kid] = con:prepare(string.format([[
-           SELECT count(k)
-              FROM %s.sbtest1
-              WHERE %s]], db_name, ranges))
-       elseif (sysbench.opt.secondary_ranges == 2) then
-        -- MySQL doesn't yet support 'LIMIT & IN/ALL/ANY/SOME subquery,
-        -- So we create an extra nested subquery
-        stmt[db_id][kid] = con:prepare(string.format([[
-           SELECT count(*), sum(length(c)) FROM %s.sbtest1 WHERE id IN
-          (SELECT * FROM (SELECT id FROM %s.sbtest1 WHERE %s LIMIT %d) as t)]],
-          db_name, db_name, ranges, sysbench.opt.range_size))
-       elseif (sysbench.opt.secondary_ranges == 3) then
-        -- MySQL does not generate MRR query plan for secondary_ranges == 2,
-        -- We add secondary_ranges == 3 as the query for get range_size rows
-        -- by MRR, secondary_ranges == 1 likely get more rows than range_size.
-        stmt[db_id][kid] = con:prepare(string.format([[
-           SELECT length(c)
-              FROM %s.sbtest1
-              WHERE %s LIMIT %d]], db_name, ranges, sysbench.opt.range_size))
-       else
-        stmt[db_id][kid] = con:prepare(string.format([[
-           SELECT sum(length(c))
-              FROM %s.sbtest1
-              WHERE %s]], db_name, ranges))
-       end
-       params[db_id][kid] = {}
-       for j = 1, sysbench.opt.number_of_ranges*2 do
-          params[db_id][kid][j] = stmt[db_id][kid]:bind_create(sysbench.sql.type.INT)
-       end
+         if (sysbench.opt.secondary_ranges == 0) then
+            stmt[db_id][kid] = con:prepare(string.format([[
+               SELECT count(k)
+               FROM %s.sbtest1
+               WHERE %s]], db_name, ranges))
+         elseif (sysbench.opt.secondary_ranges == 2) then
+            -- MySQL doesn't yet support 'LIMIT & IN/ALL/ANY/SOME subquery,
+            -- So we create an extra nested subquery
+            stmt[db_id][kid] = con:prepare(string.format([[
+               SELECT count(*), sum(length(c)) FROM %s.sbtest1 WHERE id IN
+               (SELECT * FROM (SELECT id FROM %s.sbtest1 WHERE %s LIMIT %d) as t)]],
+               db_name, db_name, ranges, sysbench.opt.range_size))
+         elseif (sysbench.opt.secondary_ranges == 3) then
+            -- MySQL does not generate MRR query plan for secondary_ranges == 2,
+            -- We add secondary_ranges == 3 as the query for get range_size rows
+            -- by MRR, secondary_ranges == 1 likely get more rows than range_size.
+            stmt[db_id][kid] = con:prepare(string.format([[
+               SELECT length(c)
+               FROM %s.sbtest1
+               WHERE %s LIMIT %d]], db_name, ranges, sysbench.opt.range_size))
+         else
+            stmt[db_id][kid] = con:prepare(string.format([[
+               SELECT sum(length(c))
+               FROM %s.sbtest1
+               WHERE %s]], db_name, ranges))
+         end
+         params[db_id][kid] = {}
+         for j = 1, sysbench.opt.number_of_ranges*2 do
+            params[db_id][kid][j] = stmt[db_id][kid]:bind_create(sysbench.sql.type.INT)
+         end
 
-       stmt[db_id][kid]:bind_param(unpack(params[db_id][kid]))
-     end
+         stmt[db_id][kid]:bind_param(unpack(params[db_id][kid]))
+      end
    end
 
    rlen = sysbench.opt.table_size / sysbench.opt.threads
@@ -89,10 +89,11 @@ end
 
 function thread_done()
    for db_id = 1, sysbench.opt.db_nums do
-     for kid = 1, sysbench.opt.index_nums do
-       stmt[db_id][kid]:close()
-     end
+      for kid = 1, sysbench.opt.index_nums do
+         stmt[db_id][kid]:close()
+      end
    end
+   con:disconnect()
 end
 
 function event()
