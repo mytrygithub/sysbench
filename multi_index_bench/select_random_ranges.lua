@@ -36,11 +36,11 @@ function thread_init()
    params = {}
    drv = sysbench.sql.driver()
    con = drv:connect()
-   for db_id = 1, sysbench.opt.db_nums do
+   for db_id = 1, sysbench.opt.db_num do
       local db_name = string.format("%s%d",sysbench.opt.db_prefix, db_id)
       stmt[db_id] = {}
       params[db_id] = {}
-      for kid = 1, sysbench.opt.index_nums do
+      for kid = 1, sysbench.opt.index_num do
          stmt[db_id][kid] = {}
          local k_name = string.format("k%d",kid)
          local ranges = string.rep(k_name .. " BETWEEN ? AND ? OR ",
@@ -88,8 +88,8 @@ function thread_init()
 end
 
 function thread_done()
-   for db_id = 1, sysbench.opt.db_nums do
-      for kid = 1, sysbench.opt.index_nums do
+   for db_id = 1, sysbench.opt.db_num do
+      for kid = 1, sysbench.opt.index_num do
          stmt[db_id][kid]:close()
       end
    end
@@ -100,8 +100,8 @@ function event()
    -- To prevent overlapping of our range queries we need to partition the whole
    -- table into 'threads' segments and then make each thread work with its
    -- own segment.
-   local lkid = sysbench.rand.default(1, sysbench.opt.index_nums)
-   local db_id = sysbench.rand.default(1, sysbench.opt.db_nums)
+   local lkid = sysbench.rand.default(1, sysbench.opt.index_num)
+   local db_id = sysbench.rand.default(1, sysbench.opt.db_num)
    for i = 1, sysbench.opt.number_of_ranges*2, 2 do
       local rmin = rlen * thread_id
       local rmax = rmin + rlen

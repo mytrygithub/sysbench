@@ -83,13 +83,13 @@ sysbench.cmdline.options = {
           "variant is 'redshift'. When enabled, " ..
           "create_secondary is automatically disabled, and " ..
           "delete_inserts is set to 0"},
-   index_nums =
+   index_num =
       {"create table index numbers", 0},
    table_with_index =
-      {"if index_nums > 0 create table with index", false},
+      {"if index_num > 0 create table with index", false},
    db_prefix =
       {"manual create database prefix, this will disable mysql-db param", "sysbench"},
-   db_nums =
+   db_num =
       {"manual create database number, this will disable mysql-db param", 20}
 }
 
@@ -207,7 +207,7 @@ function create_table(drv, con, table_num)
    local t_keys = {}
    local t_keys_define = {}
    local t_index = {}
-   for i = 1, sysbench.opt.index_nums do
+   for i = 1, sysbench.opt.index_num do
       table.insert(t_keys, string.format([[k%d,]], i))
       table.insert(t_keys_define, string.format([[k%d INTEGER DEFAULT '0' NOT NULL,]], i))
       table.insert(t_index, string.format([[INDEX(k%d),]], i))
@@ -275,7 +275,7 @@ function create_table(drv, con, table_num)
 
 
       local t_query = {}
-      for i = 1, sysbench.opt.index_nums do
+      for i = 1, sysbench.opt.index_num do
          table.insert(t_query, string.format([[%d,]], sysbench.rand.default(1, sysbench.opt.table_size)))
       end
       string_query=table.concat(t_query, " ")
